@@ -1,0 +1,9 @@
+@import url('login.css');
+.gradient-custom-2 {
+
+    background: #fccb90;
+
+    background: -webkit-linear-gradient(to right, #004ca3,   #24aeee, #3effa5, #08fa65);
+
+    background: linear-gradient(to right, #004ca3,   #24aeee, #3effa5,#08fa65);
+    }
