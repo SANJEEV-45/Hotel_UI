@@ -10,8 +10,7 @@ class Hotel extends Model
 {
     use HasFactory;
     protected $table = "sample_hotel_data";
-    use HasFactory;
-
+    public $timestamps = false;
 
     public function getFilterValues($countryName = null, $city = null, $gridNumber = null, $uniqueId = null, $hotelName = null,$inputs = null ){
 
@@ -44,23 +43,20 @@ class Hotel extends Model
        $data = $query->paginate(7);
 
        $result = ['pages'=>$pages,'data'=>$data, 'count'=>$count];
-
        return $result;
     }
 
-    public function updatedHotelMasterDb($rows){
-        $query = self::query();
-        try {
-            foreach ($rows as $row) {
-              $id = $row['id'];
-              $updatedId = $row['unique_id'];
-              $query->where('unique_id',$id)->update(['unique_id'=>$updatedId]);
+    public function updatedHotelMasterDb($row){
+            $id = $row['ind'];
+            $updatedId = $row['unique_id'];
+            if($updatedId && $id){
+                self::where('ind',$id)->update(['unique_id'=>$updatedId]);
+                $result = ['message' => 'Rows updated successfully'];
+                return $result;
             }
-            $result = ['message' => 'Rows updated successfully'];
-            return $result;
-        } catch (Exception $e) {
-            $result = ['error' => 'Failed to update rows'];
-           return $result;
-        }
+            else{
+                $result = ['error' => 'Something is invalid'];
+                return $result;
+            }
     }
 }

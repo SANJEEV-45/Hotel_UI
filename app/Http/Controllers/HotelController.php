@@ -41,8 +41,8 @@ class HotelController extends Controller
     }
 
     public function updateRows(Request $request){
-        $rows = $request->all();
-        $updatedRows =  $this->HotelModel->updatedHotelMasterDb($rows);
-        return response()->json($updatedRows);
+        $row = $request->all();
+        $updatedRow =  $this->HotelModel->updatedHotelMasterDb($row);
+        return response()->json($updatedRow);
     }
 }
