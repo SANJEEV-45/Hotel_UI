@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,51 +11,93 @@ class Hotel extends Model
     protected $table = "sample_hotel_data";
     public $timestamps = false;
 
-    public function getFilterValues($countryName = null, $city = null, $gridNumber = null, $uniqueId = null, $hotelName = null,$inputs = null ){
+    public function getHotelDbByFilter($countryName = null, $city = null, $gridNumber = null, $uniqueId = null, $hotelName = null, $inputs = null)
+    {
 
         $query = self::query();
         if ($countryName) {
-           $query->where('country_name', $countryName);
-       }
-       if ($city) {
-           $query->where('city', $city);
-       }
-       if ($gridNumber) {
-           $query->where('grid_number', $gridNumber);
-       }
-       if ($uniqueId) {
-           $query->where('unique_id', $uniqueId);
-       }
+            $query->where('country_name', $countryName);
+        }
+        if ($city) {
+            $query->where('city', $city);
+        }
+        if ($gridNumber) {
+            $query->where('grid_number', $gridNumber);
+        }
+        if ($uniqueId) {
+            $query->where('unique_id', $uniqueId);
+        }
 
-       if ($hotelName) {
-           $query->where('name',$hotelName);
-       }
+        if ($hotelName) {
+            $query->where('name', $hotelName);
+        }
 
-       if($inputs){
-            $query->where('validation',$inputs);
-       }
+        if ($inputs) {
+            $query->where('validation', $inputs);
+        }
 
-       $pages = ceil($query->count()/7);
+        $pages = ceil($query->count() / 7);
 
-       $count = $query->count();
+        $count = $query->count();
 
-       $data = $query->paginate(7);
+        $data = $query->paginate(7);
 
-       $result = ['pages'=>$pages,'data'=>$data, 'count'=>$count];
-       return $result;
+        $result = ['pages' => $pages, 'data' => $data, 'count' => $count];
+
+        return $result;
     }
 
-    public function updatedHotelMasterDb($row){
-            $id = $row['ind'];
-            $updatedId = $row['unique_id'];
-            if($updatedId && $id){
-                self::where('ind',$id)->update(['unique_id'=>$updatedId]);
-                $result = ['message' => 'Rows updated successfully'];
-                return $result;
+    public function getHotelDbByref($uniqueId = null, $supplierId = null)
+    {
+
+        $baseQuery = self::query();
+        $mappedQuery = self::query();
+        if ($uniqueId) {
+            $baseQuery->where('unique_id', $uniqueId);
+            $mappedQuery->where('unique_id', $uniqueId);
+        }
+        if ($supplierId) {
+            $baseQuery->where('primary_id', $supplierId);
+            $mappedQuery->where('primary_id', $uniqueId);
+        }
+
+        $mappedData = $mappedQuery->where('mapping', 'Mapped')->get();
+        $baseData = $baseQuery->where('mapping', 'Base')->first();
+
+        $result = ['baseData' => $baseData, 'mappeddata' => $mappedData];
+
+        return $result;
+    }
+
+    public function UpdateHotelDbByRow($uniqueId, $id)
+    {
+        $existingCount = self::where('unique_id', $uniqueId)->count();
+        $message = ['message' => 'Values is already present'];
+        if ($existingCount == 0) {
+            if ($uniqueId == "n" || $uniqueId == "N") {
+                $message = ['status' => 0, 'message' => "Value is not updated"];
+                $maxValue = self::max('unique_id');
+                $result = self::where('ind', $id)->update(['unique_id' => $maxValue]);
+            } else {
+                $result = self::where('ind', $id)->update(['unique_id' => $uniqueId]);
             }
-            else{
-                $result = ['error' => 'Something is invalid'];
-                return $result;
+            if ($result) {
+                $message = ['status' => 1, 'message' => "Successfully updated"];
             }
+        }
+        return $message;
+    }
+
+    public function DeleteRows($id)
+    {
+        $message = ['status' => 0, 'message' => "Value is not deleted"];
+        $result = self::whereIn('ind', $id)->update(['isActive', 0]);
+
+        if ($result) {
+            $message = ['status' => 1, 'message' => "Successfully deleted"];
+        }
+
+        return $message;
+
     }
 }
